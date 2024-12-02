@@ -53,8 +53,8 @@ main = do
     let levels = map parseLine (lines content)
 
     let results = map isValid levels
-    putStrLn $ show $ length $ filter (\x -> x) results 
+    putStrLn $ show $ length $ filter id results 
 
     -- part 2
     let tolerantResults = map isTolerantValid levels
-    putStrLn $ show $ length $ filter (\x -> x) tolerantResults
+    putStrLn $ show $ length $ filter id tolerantResults
