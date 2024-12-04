@@ -80,5 +80,6 @@ main = do
     -- Load file content and parse each line with the parser
     content <- readFile "3.txt"
     let linesOfFile = lines content
-    let parsedResults = map (\line -> parse (alternatingParser True) "" line) linesOfFile -- > somehow works for short testcase, but has unknown bug
-    print $ sum $ map productAndSum parsedResults
+    let input = concat linesOfFile
+    let parsedResults = parse (alternatingParser True) "" input -- > somehow works for short testcase, but has unknown bug
+    print $ productAndSum parsedResults
