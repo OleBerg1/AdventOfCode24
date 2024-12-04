@@ -50,15 +50,26 @@ multipleMulParser = catMaybes <$> many safeMulParser
 
 -- made doParser and dontParser only return pairs, issue is that they still expect do() or don't() before every other token, which doesn't consider possible multiples of other tokens inbetween mode switching tokens
 
-doParser :: Parser (Int, Int)
-doParser = do
-    _ <- try (string "do()")
-    ((try dontParser) <|> (try mulParser) <|> (anyChar >> pure (0, 0))) >>= return
+-- Alternating Parser that handles the parsing based on "do" or "don't" mode
+alternatingParser :: Bool -> Parser [(Int, Int)]
+alternatingParser isDoMode = do
+    next <- optional (try (string "do()") <|> try (string "don't()"))
+    case next of
+        Just "do()" -> alternatingParser True
+        Just "don't()" -> alternatingParser False
+        Nothing -> do
+            current <- if isDoMode
+                       then (try mulParser <|> (anyChar >> pure (0, 0)))
+                       else (anyChar >> pure (0, 0))  -- Skip everything in don't mode
+            rest <- optional (alternatingParser isDoMode)
+            return $ case rest of
+                Nothing -> [current]
+                Just rs -> current : rs
 
-dontParser :: Parser (Int, Int)
-dontParser = do 
-    _ <- try (string "don't()")
-    ((try doParser) <|> (try dontMulParser) <|> (anyChar >> pure (0, 0))) >>= return
+-- Parser that starts in "don't" mode
+parser :: String -> Either ParseError [(Int, Int)]
+parser str = parse (alternatingParser False) "" str
+
 
 productAndSum :: Either ParseError [(Int, Int)] -> Int
 productAndSum (Right tuples)    = sum $ map (\(x, y) -> x * y) tuples
@@ -66,8 +77,8 @@ productAndSum (Left _)          = 0
 
 main :: IO ()
 main = do
-    -- part 1
-    content <- readFile "3t.txt"
+    -- Load file content and parse each line with the parser
+    content <- readFile "3.txt"
     let linesOfFile = lines content
-    
-    print $ map (parse (many (doParser <|> dontParser)) "") (map (\line -> "don't()" ++ line ) linesOfFile)
+    let parsedResults = map (\line -> parse (alternatingParser True) "" line) linesOfFile -- > somehow works for short testcase, but has unknown bug
+    print $ sum $ map productAndSum parsedResults
