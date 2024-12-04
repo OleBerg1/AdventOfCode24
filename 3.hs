@@ -27,16 +27,6 @@ mulParser = do
     _ <- char ')'
     return (x, y)
 
-
-dontMulParser :: Parser (Int, Int)
-dontMulParser = do
-    _ <- string "mul("
-    x <- integer
-    _ <- char ','
-    y <- integer
-    _ <- char ')'
-    return (0, 0)
-
 safeMulParser :: Parser (Maybe (Int, Int))
 safeMulParser = (Just <$> try mulParser) <|> (anyChar *> pure Nothing)
 
@@ -79,7 +69,8 @@ main :: IO ()
 main = do
     -- Load file content and parse each line with the parser
     content <- readFile "3.txt"
-    let linesOfFile = lines content
-    let input = concat linesOfFile
-    let parsedResults = parse (alternatingParser True) "" input -- > somehow works for short testcase, but has unknown bug
-    print $ productAndSum parsedResults
+
+    -- part 1
+    print $ productAndSum $ parse multipleMulParser "" content
+    -- part 2
+    print $ productAndSum $ parse (alternatingParser True) "" content
