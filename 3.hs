@@ -33,14 +33,6 @@ safeMulParser = (Just <$> try mulParser) <|> (anyChar *> pure Nothing)
 multipleMulParser :: Parser [(Int, Int)]
 multipleMulParser = catMaybes <$> many safeMulParser
 
--- TODO: the last line in doParser and dontParser only checks first token for do() or dont() before repeatedly finding mul() or discarding anyChar. 
--- We still want to parse do or Don't, but mulParser and the skip anyChar parser returns a pair of int, while doParser and dontParser returns lists of these
-
--- figure out how to optionally parse do() or don't() before parsing mul() while making this still dictate the value of a given mul()
-
--- made doParser and dontParser only return pairs, issue is that they still expect do() or don't() before every other token, which doesn't consider possible multiples of other tokens inbetween mode switching tokens
-
--- Alternating Parser that handles the parsing based on "do" or "don't" mode
 alternatingParser :: Bool -> Parser [(Int, Int)]
 alternatingParser isDoMode = do
     next <- optional (try (string "do()") <|> try (string "don't()"))
